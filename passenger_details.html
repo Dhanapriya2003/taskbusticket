@@ -1,0 +1,75 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Passenger Details</title>
+  <link rel="stylesheet" href="css/styles.css">
+  <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css">
+  <script>
+    function back() { window.history.back(); }
+    function logout() {
+      localStorage.removeItem('patientId');
+      window.location.href = "index.html";
+    }
+  </script>
+</head>
+<body>
+  <div class="container mt-4">
+    <div class="d-flex justify-content-between">
+      <button class="btn btn-secondary" onclick="back()">Back</button>
+      <button class="btn btn-danger" onclick="logout()">Logout</button>
+    </div>
+    <h2 class="mt-4">Passenger Details</h2>
+    <form id="passengerDetailsForm"></form>
+    <button id="detailsSubmitBtn" class="btn btn-primary mt-3">Proceed to Payment</button>
+  </div>
+  <script>
+    // Retrieve bookingData from localStorage
+    let bookingData = JSON.parse(localStorage.getItem('bookingData'));
+    if (!bookingData) {
+      alert("No booking data found.");
+      window.location.href = "booking_form.html";
+    }
+    const seatCount = bookingData.seatNumbers.length;
+    const form = document.getElementById('passengerDetailsForm');
+    for (let i = 0; i < seatCount; i++) {
+      const div = document.createElement('div');
+      div.classList.add('card', 'mb-3', 'p-3');
+      div.innerHTML = `
+        <h5>Passenger ${i + 1} (Seat ${bookingData.seatNumbers[i]})</h5>
+        <div class="form-group">
+          <label for="passengerName${i}">Name:</label>
+          <input type="text" id="passengerName${i}" class="form-control" required>
+        </div>
+        <div class="form-group">
+          <label for="passengerAge${i}">Age:</label>
+          <input type="number" id="passengerAge${i}" class="form-control" required>
+        </div>
+        <div class="form-group">
+          <label for="passengerGender${i}">Gender:</label>
+          <select id="passengerGender${i}" class="form-control" required>
+            <option value="Male">Male</option>
+            <option value="Female">Female</option>
+            <option value="Other">Other</option>
+          </select>
+        </div>
+      `;
+      form.appendChild(div);
+    }
+
+    document.getElementById('detailsSubmitBtn').addEventListener('click', function() {
+      let passengerDetails = [];
+      for (let i = 0; i < seatCount; i++) {
+        const name = document.getElementById(`passengerName${i}`).value;
+        const age = parseInt(document.getElementById(`passengerAge${i}`).value, 10);
+        const gender = document.getElementById(`passengerGender${i}`).value;
+        passengerDetails.push({ name, age, gender });
+      }
+      bookingData.passengerDetails = passengerDetails;
+      localStorage.setItem('bookingData', JSON.stringify(bookingData));
+      window.location.href = "payment.html";
+    });
+  </script>
+</body>
+</html>

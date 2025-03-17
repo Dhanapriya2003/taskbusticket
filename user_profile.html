@@ -1,0 +1,99 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>User Profile</title>
+  <link rel="stylesheet" href="css/styles.css">
+  <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css">
+  <script>
+    function getQueryParam(name) {
+      const urlParams = new URLSearchParams(window.location.search);
+      return urlParams.get(name);
+    }
+    function logout() {
+      localStorage.removeItem('patientId');
+      window.location.href = "index.html";
+    }
+    function back() {
+      window.history.back();
+    }
+  </script>
+</head>
+<body>
+  <div class="container mt-4">
+    <div class="d-flex justify-content-between">
+      <button class="btn btn-secondary" onclick="back()">Back</button>
+      <button class="btn btn-danger" onclick="logout()">Logout</button>
+    </div>
+    <h2 class="mt-4">User Profile</h2>
+    <div id="profileDetails"></div>
+    <h4 class="mt-4">Update Profile</h4>
+    <form id="profileForm">
+      <div class="form-group">
+        <label for="profileName">Name:</label>
+        <input type="text" id="profileName" class="form-control" required>
+      </div>
+      <div class="form-group">
+        <label for="profileEmail">Email:</label>
+        <input type="email" id="profileEmail" class="form-control" required>
+      </div>
+      <div class="form-group">
+        <label for="profileContact">Contact Number:</label>
+        <input type="text" id="profileContact" class="form-control" required>
+      </div>
+      <button type="submit" class="btn btn-primary">Update Profile</button>
+    </form>
+    <div id="profileMessage" class="mt-3"></div>
+  </div>
+  <script src="js/main.js"></script>
+  <script>
+    let patientId = getQueryParam('patientId');
+    if (patientId) {
+      localStorage.setItem('patientId', patientId);
+    } else {
+      patientId = localStorage.getItem('patientId');
+    }
+    if (!patientId) {
+      document.getElementById('profileDetails').innerText = "No patient ID found. Please log in.";
+    } else {
+      document.getElementById('profileDetails').innerHTML = `<p>Loading profile for Passenger ID: ${patientId}</p>`;
+      fetch(`${API_BASE_URL}/passengers/${patientId}`)
+        .then(response => response.json())
+        .then(profile => {
+          document.getElementById('profileDetails').innerHTML = `
+            <p><strong>Name:</strong> ${profile.name}</p>
+            <p><strong>Email:</strong> ${profile.email}</p>
+            <p><strong>Contact:</strong> ${profile.contactNumber}</p>
+          `;
+          document.getElementById('profileName').value = profile.name;
+          document.getElementById('profileEmail').value = profile.email;
+          document.getElementById('profileContact').value = profile.contactNumber;
+        })
+        .catch(error => console.error('Error loading profile:', error));
+    }
+    
+    document.getElementById('profileForm').addEventListener('submit', function(e) {
+      e.preventDefault();
+      const updatedProfile = {
+        name: document.getElementById('profileName').value,
+        email: document.getElementById('profileEmail').value,
+        contactNumber: document.getElementById('profileContact').value
+      };
+      fetch(`${API_BASE_URL}/passengers/${patientId}`, {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(updatedProfile)
+      })
+      .then(response => response.json())
+      .then(data => {
+        document.getElementById('profileMessage').innerText = 'Profile updated successfully!';
+      })
+      .catch(error => {
+        console.error('Error updating profile:', error);
+        document.getElementById('profileMessage').innerText = 'Failed to update profile.';
+      });
+    });
+  </script>
+</body>
+</html>

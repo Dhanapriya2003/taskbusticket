@@ -1,0 +1,59 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Passenger Dashboard</title>
+  <link rel="stylesheet" href="css/styles.css" />
+  <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css" />
+  <script>
+    function getQueryParam(name) {
+      const urlParams = new URLSearchParams(window.location.search);
+      return urlParams.get(name);
+    }
+    function logout() {
+      localStorage.removeItem('patientId');
+      window.location.href = "index.html";
+    }
+    function back() {
+      window.history.back();
+    }
+  </script>
+</head>
+<body>
+  <div class="container mt-4">
+    <div class="d-flex justify-content-between">
+      <!-- <button class="btn btn-secondary" onclick="back()">Back</button> -->
+      <button class="btn btn-danger" onclick="logout()">Logout</button>
+    </div>
+    <h2 class="mt-4">Passenger Dashboard</h2>
+    <p>Your Passenger ID: <span id="patientIdDisplay"></span></p>
+    <div class="mt-4">
+      <a href="search_bus.html" class="btn btn-primary">Search Bus Routes</a>
+      <a href="booking_history.html" class="btn btn-info">Booking History</a>
+      <a href="user_profile.html" class="btn btn-secondary">My Profile</a>
+    </div>
+    <!-- <div class="mt-4">
+      <h3>Your Appointments</h3>
+      <div id="appointmentsTable"></div>
+    </div> -->
+  </div>
+  <script src="js/main.js"></script>
+  <script>
+    // Get patientId from URL and then store it in localStorage
+    let patientId = getQueryParam('patientId');
+    if (patientId) {
+      localStorage.setItem('patientId', patientId);
+    } else {
+      patientId = localStorage.getItem('patientId');
+    }
+    document.getElementById('patientIdDisplay').innerText = patientId ? patientId : "Not Available";
+    
+    if (patientId) {
+      loadPatientAppointments(patientId);
+    } else {
+      document.getElementById('appointmentsTable').innerText = "No patient ID found. Please log in.";
+    }
+  </script>
+</body>
+</html>

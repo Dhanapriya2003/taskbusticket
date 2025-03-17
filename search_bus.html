@@ -1,0 +1,88 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Search Bus Routes</title>
+  <link rel="stylesheet" href="css/styles.css">
+  <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css">
+  <script>
+    function getQueryParam(name) {
+      const urlParams = new URLSearchParams(window.location.search);
+      return urlParams.get(name);
+    }
+    function back() {
+      window.history.back();
+    }
+    function logout() {
+      localStorage.removeItem('patientId');
+      window.location.href = "index.html";
+    }
+    function getDistinct(arr) {
+      return [...new Set(arr)];
+    }
+  </script>
+</head>
+<body>
+  <div class="container mt-4">
+    <div class="d-flex justify-content-between">
+      <button class="btn btn-secondary" onclick="back()">Back</button>
+      <button class="btn btn-danger" onclick="logout()">Logout</button>
+    </div>
+    <h2 class="mt-4">Search Bus Routes</h2>
+    <form id="searchForm">
+      <div class="form-group">
+        <label for="from">From:</label>
+        <input type="text" id="from" class="form-control" list="fromSuggestions" required>
+        <datalist id="fromSuggestions"></datalist>
+      </div>
+      <div class="form-group">
+        <label for="to">To:</label>
+        <input type="text" id="to" class="form-control" list="toSuggestions" required>
+        <datalist id="toSuggestions"></datalist>
+      </div>
+      <button type="submit" class="btn btn-primary">Search</button>
+    </form>
+  </div>
+  <script src="js/main.js"></script>
+  <script>
+    function loadBusSuggestions() {
+      fetch(`${API_BASE_URL}/buses`)
+        .then(response => response.json())
+        .then(buses => {
+          const fromValues = buses.map(bus => bus.from);
+          const toValues = buses.map(bus => bus.to);
+          const distinctFrom = getDistinct(fromValues);
+          const distinctTo = getDistinct(toValues);
+          
+          const fromDatalist = document.getElementById('fromSuggestions');
+          const toDatalist = document.getElementById('toSuggestions');
+          fromDatalist.innerHTML = "";
+          toDatalist.innerHTML = "";
+          
+          distinctFrom.forEach(value => {
+            const option = document.createElement('option');
+            option.value = value;
+            fromDatalist.appendChild(option);
+          });
+          
+          distinctTo.forEach(value => {
+            const option = document.createElement('option');
+            option.value = value;
+            toDatalist.appendChild(option);
+          });
+        })
+        .catch(error => console.error('Error loading bus suggestions:', error));
+    }
+    
+    document.getElementById('searchForm').addEventListener('submit', function(e) {
+      e.preventDefault();
+      const from = document.getElementById('from').value;
+      const to = document.getElementById('to').value;
+      window.location.href = "bus_routes.html?from=" + encodeURIComponent(from) + "&to=" + encodeURIComponent(to);
+    });
+    
+    window.addEventListener('load', loadBusSuggestions);
+  </script>
+</body>
+</html>

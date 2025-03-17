@@ -1,0 +1,205 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Book Ticket</title>
+  <link rel="stylesheet" href="css/styles.css" />
+  <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css" />
+  <script>
+    function getQueryParam(name) {
+      const urlParams = new URLSearchParams(window.location.search);
+      return urlParams.get(name);
+    }
+    function back() { window.history.back(); }
+    function logout() {
+      localStorage.removeItem("patientId");
+      window.location.href = "index.html";
+    }
+  </script>
+  <style>
+    /* Inline seat map styles; can be moved to styles.css */
+    .seat-map-container {
+      margin-top: 20px;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+    }
+    .seat-legend {
+      display: flex;
+      justify-content: center;
+      margin-bottom: 10px;
+    }
+    .seat-legend .legend-item {
+      margin: 0 10px;
+      display: flex;
+      align-items: center;
+    }
+    .seat-legend .legend-item span {
+      display: inline-block;
+      width: 20px;
+      height: 20px;
+      margin-right: 5px;
+      border-radius: 4px;
+    }
+    .legend-available { background-color: #28a745; }
+    .legend-unavailable { background-color: #ccc; }
+    .legend-female { background-color: #ff66cc; }
+    .seat-map {
+      display: grid;
+      grid-template-columns: repeat(4, 40px);
+      grid-gap: 10px;
+    }
+    .seat {
+      width: 40px;
+      height: 40px;
+      border-radius: 4px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      cursor: pointer;
+      user-select: none;
+      font-weight: bold;
+    }
+    .seat.available {
+      background-color: #28a745;
+      color: #fff;
+    }
+    .seat.unavailable {
+      background-color: #ccc;
+      color: #666;
+      cursor: not-allowed;
+    }
+    .seat.female {
+      background-color: #ff66cc;
+      color: #fff;
+    }
+    .seat.selected {
+      background-color: #007bff !important;
+    }
+  </style>
+</head>
+<body>
+  <div class="container mt-4">
+    <!-- Back and Logout Buttons -->
+    <div class="d-flex justify-content-between">
+      <button class="btn btn-secondary" onclick="back()">Back</button>
+      <button class="btn btn-danger" onclick="logout()">Logout</button>
+    </div>
+    <h2 class="mt-4">Book Ticket</h2>
+    <form id="bookingForm">
+      <div class="form-group">
+        <label for="ticketCount">Number of Tickets (max 3):</label>
+        <select id="ticketCount" class="form-control" required>
+          <option value="1" selected>1</option>
+          <option value="2">2</option>
+          <option value="3">3</option>
+        </select>
+      </div>
+      <div class="form-group">
+        <label for="boardingPoint">Boarding Point:</label>
+        <input type="text" id="boardingPoint" class="form-control" required />
+      </div>
+      <div class="form-group">
+        <label for="dropPoint">Drop Point:</label>
+        <input type="text" id="dropPoint" class="form-control" required />
+      </div>
+      <div id="bookingMessage" class="mt-2"></div>
+      <button type="submit" class="btn btn-primary mt-3">Next: Passenger Details</button>
+    </form>
+
+    <!-- Seat Map -->
+    <div class="seat-map-container">
+      <div class="seat-legend">
+        <div class="legend-item">
+          <span class="legend-available"></span> Available
+        </div>
+        <div class="legend-item">
+          <span class="legend-unavailable"></span> Unavailable
+        </div>
+        <div class="legend-item">
+          <span class="legend-female"></span> Female
+        </div>
+      </div>
+      <div class="seat-map" id="seatMap"></div>
+    </div>
+  </div>
+  <script src="js/main.js"></script>
+  <script>
+    const busId = getQueryParam("busId");
+    const passengerId = localStorage.getItem("patientId");
+    const seatMapContainer = document.getElementById("seatMap");
+    const bookingMessage = document.getElementById("bookingMessage");
+    let selectedSeats = [];
+
+    // Fetch bus details (including seat map)
+    fetch(`${API_BASE_URL}/buses/${busId}`)
+      .then((response) => response.json())
+      .then((bus) => {
+        if (!bus || !bus.seats) {
+          bookingMessage.innerText = "No seat data found for this bus.";
+          return;
+        }
+        renderSeatMap(bus.seats);
+      })
+      .catch((error) => {
+        console.error("Error fetching bus seat data:", error);
+        bookingMessage.innerText = "Error loading seat map.";
+      });
+
+    function renderSeatMap(seats) {
+      seatMapContainer.innerHTML = "";
+      seats.forEach((seat) => {
+        const seatDiv = document.createElement("div");
+        seatDiv.classList.add("seat", seat.status);
+        seatDiv.textContent = seat.seatId;
+        seatDiv.dataset.seatId = seat.seatId;
+        seatDiv.addEventListener("click", function () {
+          if (seat.status === "unavailable") return;
+          const maxTickets = parseInt(document.getElementById("ticketCount").value, 10);
+          if (seatDiv.classList.contains("selected")) {
+            seatDiv.classList.remove("selected");
+            selectedSeats = selectedSeats.filter((s) => s !== seat.seatId);
+          } else {
+            if (selectedSeats.length < maxTickets) {
+              seatDiv.classList.add("selected");
+              selectedSeats.push(seat.seatId);
+            } else {
+              alert("You can only select " + maxTickets + " seats.");
+            }
+          }
+          console.log("Selected Seats:", selectedSeats);
+        });
+        seatMapContainer.appendChild(seatDiv);
+      });
+    }
+
+    document.getElementById("bookingForm").addEventListener("submit", function (e) {
+      e.preventDefault();
+      if (selectedSeats.length === 0) {
+        bookingMessage.innerText = "Please select at least one seat!";
+        return;
+      }
+      const boardingPoint = document.getElementById("boardingPoint").value;
+      const dropPoint = document.getElementById("dropPoint").value;
+      if (!boardingPoint || !dropPoint) {
+        bookingMessage.innerText = "Please enter boarding and drop points!";
+        return;
+      }
+      // Create a temporary bookingData object to store in localStorage for use in subsequent pages
+      const bookingData = {
+        passengerId: passengerId,
+        busId: busId,
+        seatNumbers: selectedSeats,
+        boardingPoint: boardingPoint,
+        dropPoint: dropPoint,
+        bookingDate: new Date().toISOString(),
+        status: "PENDING" // passenger details and payment will be added later
+      };
+      localStorage.setItem("bookingData", JSON.stringify(bookingData));
+      // Redirect to Passenger Details page
+      window.location.href = "passenger_details.html";
+    });
+  </script>
+</body>
+</html>

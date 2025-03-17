@@ -1,0 +1,127 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Booking History</title>
+  <link rel="stylesheet" href="css/styles.css" />
+  <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css" />
+  <!-- Load jsPDF library for PDF generation -->
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+  <script>
+    function getQueryParam(name) {
+      const urlParams = new URLSearchParams(window.location.search);
+      return urlParams.get(name);
+    }
+    function logout() {
+      localStorage.removeItem('patientId');
+      window.location.href = "index.html";
+    }
+    function back() {
+      window.history.back();
+    }
+  </script>
+</head>
+<body>
+  <div class="container mt-4">
+    <div class="d-flex justify-content-between">
+      <button class="btn btn-secondary" onclick="back()">Back</button>
+      <button class="btn btn-danger" onclick="logout()">Logout</button>
+    </div>
+    <h2 class="mt-4">Booking History</h2>
+    <div id="bookingHistoryTable"></div>
+  </div>
+  <script src="js/main.js"></script>
+  <script>
+    let patientId = getQueryParam('patientId');
+    if (!patientId) {
+      patientId = localStorage.getItem('patientId');
+    }
+    if (!patientId) {
+      document.getElementById('bookingHistoryTable').innerText = "No patient ID found. Please log in.";
+    } else {
+      loadBookingHistory(patientId);
+    }
+
+    // Updated loadBookingHistory function (if not already in main.js)
+    function loadBookingHistory(patientId) {
+      fetch(`${API_BASE_URL}/bookings/passenger/${patientId}`)
+        .then(response => response.json())
+        .then(bookings => {
+          let html = `<table class="table table-bordered">
+                        <thead>
+                          <tr>
+                            <th>Booking ID</th>
+                            <th>Passenger ID</th>
+                            <th>Booking Date</th>
+                            <th>Actions</th>
+                          </tr>
+                        </thead>
+                        <tbody>`;
+          bookings.forEach(booking => {
+            html += `<tr>
+                       <td>${booking.id}</td>
+                       <td>${booking.passengerId}</td>
+                       <td>${booking.bookingDate}</td>
+                       <td>
+                         <button class="btn btn-sm btn-primary" onclick='viewBooking("${booking.id}")'>View Booking</button>
+                         <button class="btn btn-sm btn-secondary" onclick='downloadBooking("${booking.id}")'>Download Booking</button>
+                       </td>
+                     </tr>`;
+          });
+          html += `</tbody></table>`;
+          document.getElementById('bookingHistoryTable').innerHTML = html;
+        })
+        .catch(error => console.error('Error loading booking history:', error));
+    }
+
+    function viewBooking(bookingId) {
+      window.location.href = "view_booking.html?bookingId=" + bookingId;
+    }
+
+    function downloadBooking(bookingId) {
+      fetch(`${API_BASE_URL}/bookings/${bookingId}`)
+        .then(response => response.json())
+        .then(booking => {
+          const { jsPDF } = window.jspdf;
+          const doc = new jsPDF();
+          doc.setFontSize(16);
+          doc.text("Booking Ticket", 20, 20);
+          doc.setFontSize(12);
+          let y = 30;
+          doc.text(`Booking ID: ${booking.id}`, 20, y);
+          y += 10;
+          doc.text(`Passenger ID: ${booking.passengerId}`, 20, y);
+          y += 10;
+          doc.text(`Bus ID: ${booking.busId}`, 20, y);
+          y += 10;
+          doc.text(`Bus Number: ${booking.busNumber || "N/A"}`, 20, y);
+          y += 10;
+          doc.text(`Departure Time: ${booking.departureTime || "N/A"}`, 20, y);
+          y += 10;
+          doc.text(`Arrival Time: ${booking.arrivalTime || "N/A"}`, 20, y);
+          y += 10;
+          doc.text(`Seat Numbers: ${booking.seatNumbers.join(", ")}`, 20, y);
+          y += 10;
+          doc.text(`Boarding Point: ${booking.boardingPoint}`, 20, y);
+          y += 10;
+          doc.text(`Drop Point: ${booking.dropPoint}`, 20, y);
+          y += 10;
+          doc.text(`Booking Date: ${booking.bookingDate}`, 20, y);
+          if (booking.passengerDetails && booking.passengerDetails.length > 0) {
+            y += 10;
+            doc.text("Passenger Details:", 20, y);
+            booking.passengerDetails.forEach((pd, index) => {
+              y += 10;
+              doc.text(`Passenger ${index+1}: ${pd.name}, Age: ${pd.age}, Gender: ${pd.gender}`, 20, y);
+            });
+          }
+          doc.save("booking_ticket.pdf");
+        })
+        .catch(error => console.error('Error downloading booking:', error));
+    }
+
+
+  </script>
+</body>
+</html>
