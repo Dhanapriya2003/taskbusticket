@@ -1,0 +1,15 @@
+P:\mini2\BusTicketBookingApplication\BusTicketBooking\src\main\java\com\example\busticket\repository\BookingRepository.java
+P:\mini2\BusTicketBookingApplication\BusTicketBooking\src\main\java\com\example\busticket\controller\BookingController.java
+P:\mini2\BusTicketBookingApplication\BusTicketBooking\src\main\java\com\example\busticket\exception\GlobalExceptionHandler.java
+P:\mini2\BusTicketBookingApplication\BusTicketBooking\src\main\java\com\example\busticket\model\Bus.java
+P:\mini2\BusTicketBookingApplication\BusTicketBooking\src\main\java\com\example\busticket\repository\BusRepository.java
+P:\mini2\BusTicketBookingApplication\BusTicketBooking\src\main\java\com\example\busticket\BusTicketBookingApplication.java
+P:\mini2\BusTicketBookingApplication\BusTicketBooking\src\main\java\com\example\busticket\controller\BusController.java
+P:\mini2\BusTicketBookingApplication\BusTicketBooking\src\main\java\com\example\busticket\model\PassengerDetail.java
+P:\mini2\BusTicketBookingApplication\BusTicketBooking\src\main\java\com\example\busticket\model\Seat.java
+P:\mini2\BusTicketBookingApplication\BusTicketBooking\src\main\java\com\example\busticket\repository\PassengerRepository.java
+P:\mini2\BusTicketBookingApplication\BusTicketBooking\src\main\java\com\example\busticket\Main.java
+P:\mini2\BusTicketBookingApplication\BusTicketBooking\src\main\java\com\example\busticket\model\Booking.java
+P:\mini2\BusTicketBookingApplication\BusTicketBooking\src\main\java\com\example\busticket\model\Passenger.java
+P:\mini2\BusTicketBookingApplication\BusTicketBooking\src\main\java\com\example\busticket\config\CorsConfig.java
+P:\mini2\BusTicketBookingApplication\BusTicketBooking\src\main\java\com\example\busticket\controller\PassengerController.java
